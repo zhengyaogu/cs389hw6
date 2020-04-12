@@ -109,14 +109,14 @@ class Cache::Impl
 
         std::string ret = beast::buffers_to_string(res.body().data());
 
-        std::cout << ret << std::endl;
+//        std::cout << ret << std::endl;
         if(ret[0] == '{')
         {
             int x = ret.find("value\":\"");
             int y = ret.find("\"}");
             auto value = ret.substr(x + 8, y - x - 8);
             val_size = y - x - 8 + 1;
-            std::cout << value << " " << val_size << "\n";
+//            std::cout << value << " " << val_size << "\n";
             char* val = new char[val_size];
             for(unsigned int i = 0; i < val_size - 1; i ++)
                 val[i] = value[i];
