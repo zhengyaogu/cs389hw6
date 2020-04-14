@@ -368,7 +368,7 @@ http_server(tcp::acceptor& acceptor, tcp::socket& socket, Cache* cache)
 int 
 main(int argc, char* argv[])
 {
-    size_type maxmem = 30;
+    size_type maxmem = 300000;
     std::string address("127.0.0.1");
     port_type port = 10002;
     size_type threads = 1;

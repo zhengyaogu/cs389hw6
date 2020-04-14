@@ -21,4 +21,3 @@ public:
 
     const Cache::val_type random_val(Cache::size_type size);
 };
-

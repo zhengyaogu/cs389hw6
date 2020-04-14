@@ -116,10 +116,13 @@ class Cache::Impl
             int y = ret.find("\"}");
             auto value = ret.substr(x + 8, y - x - 8);
             val_size = y - x - 8 + 1;
+//            std::cout << ret << std::endl;
+//            std::cout << "x = " << x << ", y = " << y << ", val_size = " << val_size << std::endl;
 //            std::cout << value << " " << val_size << "\n";
             char* val = new char[val_size];
             for(unsigned int i = 0; i < val_size - 1; i ++)
                 val[i] = value[i];
+            val[val_size - 1] = 0;
             return val;
         }
         val_size = 0;

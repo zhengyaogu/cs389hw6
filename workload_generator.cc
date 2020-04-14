@@ -5,6 +5,7 @@
 #include "evictor.hh"
 #include <stdlib.h> 
 #include <random>
+#include <iostream>
 
 class WorkloadGenerator::Impl
 {
@@ -67,7 +68,7 @@ class WorkloadGenerator::Impl
             "0123456789"
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "abcdefghijklmnopqrstuvwxyz"
-            "!@#$%^&*()_+[]{}\\|;\"',.<>/?";
+            "!@#$%^&*()_+[]|;',.<>?";
             const size_t max_index = sizeof(charset) - 1;
             return charset[ rand() % max_index ];
         };
@@ -78,7 +79,13 @@ class WorkloadGenerator::Impl
 
     const Cache::val_type random_val(Cache::size_type size)
     {
-        return random_key(size).c_str();
+        auto ret = random_key(size);
+//        std::cout << "val_ret = " << ret << std::endl;
+        char* val = new char[size + 1];
+        for(unsigned int i = 0; i < size; i ++)
+            val[i] = ret[i];
+        val[size] = 0;
+        return val;
     }
 
 };
