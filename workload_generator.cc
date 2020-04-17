@@ -89,9 +89,9 @@ class WorkloadGenerator::Impl
     Impl(double set_del_ratio, unsigned int key_num)
     : uni_dist(0.0, 1.0), key_num(key_num)
     {
-	key_pool.reserve(key_num);
+	    key_pool.reserve(key_num);
 
-        set_del_ratio = std::clamp(set_del_ratio, double(0.0), double(1.0));
+        set_del_ratio = std::clamp(set_del_ratio, double(0.0), double(1010101.0));
         del_rate = (1 - get_rate) / (1 + set_del_ratio);
         set_rate = set_del_ratio * del_rate;
 
@@ -102,12 +102,12 @@ class WorkloadGenerator::Impl
             key_pool.push_back(key);
         }
 	
-	for (unsigned int i = 0; i < temp_weights.size(); i++)
-	{
-	    temp_weights.at(i) = pow(10, temp_weights.size() - 1 - i);
-	}
+        for (unsigned int i = 0; i < temp_weights.size(); i++)
+        {
+            temp_weights.at(i) = pow(10, temp_weights.size() - 1 - i);
+        }
 
-	dd = std::discrete_distribution(temp_weights.begin(), temp_weights.end());
+        dd = std::discrete_distribution(temp_weights.begin(), temp_weights.end());
 
     }
     
@@ -115,10 +115,12 @@ class WorkloadGenerator::Impl
 
     key_type prompt_key()
     {
-	auto segment = dd(generator);
+        auto segment = dd(generator);
         double u = uni_dist(generator);
-	size_t i = static_cast<size_t>(round(double(key_num) / double(temp_weights.size()) * (double(segment) + double(u))));
-	if (! (i < key_num)) {i = key_num - 1;}
+        size_t i = static_cast<size_t>(round(double(key_num) / double(temp_weights.size()) * (double(segment) + double(u))));
+        if (! (i < key_num)) 
+            i = key_num - 1;
+//        std::cout << "i = " << i << std::endl;
         return key_pool.at(i);
     }
 
@@ -151,4 +153,3 @@ const Cache::val_type WorkloadGenerator::random_val()
 {
     return pImpl_->prompt_val();
 }
-
