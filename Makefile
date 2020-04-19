@@ -26,7 +26,7 @@ workload_test:
 	./test.o [workload]
 
 execute_server:
-	./server.o -m 4194304
+	./server.o -m 1800000
 	
 execute_client:
 	./test_client.o

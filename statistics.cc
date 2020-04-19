@@ -115,5 +115,5 @@ int main()
         std::cout << m.at(i) << ", ";
     }
     std::cout << std::endl;*/
-    export_measurements(100);
+    export_measurements(1000000);
 }
