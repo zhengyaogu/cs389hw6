@@ -93,8 +93,8 @@ class Cache::Impl
 //        std::cout << target << "\n";
 //        std::cout << target.compare("/1/2") << "\n";
 
-        // Write the message to standard out
-        std::cout << connet(http::verb::put, target) << std::endl;
+//        std::cout << connet(http::verb::put, target) << std::endl;
+        connet(http::verb::put, target);
     }
 
     Cache::val_type get(key_type key, Cache::size_type& val_size) const
