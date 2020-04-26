@@ -16,6 +16,7 @@ compile_test: test.cc cache_client.cc workload_generator.cc
 compile_statistics: statistics.cc cache_client.cc workload_generator.cc
 	g++ -I boost_1_72_0 -Wall -pthread -std=c++17 -g -O3 -o statistics.o cache_client.cc statistics.cc workload_generator.cc
 
+
 lru_test:
 	./test.o [lru]
 fifo_test:
@@ -26,7 +27,7 @@ workload_test:
 	./test.o [workload]
 
 execute_server:
-	./server.o -m 1800000
+	./server.o -m 1800000 -t 2
 	
 execute_client:
 	./test_client.o
