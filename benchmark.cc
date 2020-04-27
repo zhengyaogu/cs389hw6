@@ -6,12 +6,17 @@
 #include <vector>
 #include <algorithm>
 #include <chrono>
+#include <mutex>
+#include <thread>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
-// It's Ok (at least after C++ 11) to return a vector.
-std::vector<double> baseline_latencies(int nreq, double set_del_ratio, int key_pool_size)
+void baseline_latencies(int nreq, double set_del_ratio, int key_pool_size, std::vector <double> & req_time_cost, std::mutex & mutex)
 {
-    std::vector <double> req_time_cost;
-    Cache my_cache("127.0.0.1", "10002");
+    Cache* my_cache = new Cache("127.0.0.1", "10002");
     WorkloadGenerator wkld(set_del_ratio, key_pool_size);
     for(int i = 1; i <= nreq; i ++)
     {
@@ -22,7 +27,7 @@ std::vector<double> baseline_latencies(int nreq, double set_del_ratio, int key_p
             Cache::size_type s = 0;
             key_type key = wkld.random_key();
             t1 = std::chrono::high_resolution_clock::now();
-            Cache::val_type val = my_cache.get(key, s);
+            Cache::val_type val = my_cache->get(key, s);
             t2 = std::chrono::high_resolution_clock::now();
             delete[] val;
         }
@@ -31,7 +36,7 @@ std::vector<double> baseline_latencies(int nreq, double set_del_ratio, int key_p
             key_type key = wkld.random_key();
             const Cache::val_type val = wkld.random_val();
             t1 = std::chrono::high_resolution_clock::now();
-            my_cache.set(key, val, strlen(val) + 1);
+            my_cache->set(key, val, strlen(val) + 1);
             t2 = std::chrono::high_resolution_clock::now();
             delete[] val;
         }
@@ -39,59 +44,57 @@ std::vector<double> baseline_latencies(int nreq, double set_del_ratio, int key_p
         {
             key_type key = wkld.random_key();
             t1 = std::chrono::high_resolution_clock::now();
-            my_cache.del(key);
+            my_cache->del(key);
             t2 = std::chrono::high_resolution_clock::now();
         }
-        double duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
-        req_time_cost.push_back(duration);
+        double duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+        {
+            std::lock_guard guard(mutex);
+            req_time_cost.push_back(duration);
+        }
     }
-    return req_time_cost;
+    delete my_cache;
 }
 
-std::pair<double, double> baseline_performance(int nreq, double set_del_ratio, int key_pool_size)
+std::pair<double, double> threaded_performance(int nthread, int nreq, double set_del_ratio, int key_pool_size)
 {
+    std::mutex mutex;
     double latency_95 = 0, mean_throughput = 0;
-    std::vector <double> measurements = baseline_latencies(nreq, set_del_ratio, key_pool_size);
-    assert(int(measurements.size()) == nreq);
-    if(nreq != 0)
+    std::vector <double> measurements;
+    std::vector <std::thread> my_threads;
+    for(int i = 0; i < nthread; i ++)
+        my_threads.push_back(std::thread(baseline_latencies, nreq, set_del_ratio, key_pool_size, std::ref(measurements), std::ref(mutex)));
+    for(int i = 0; i < nthread; i ++)
+    {
+        assert(my_threads[i].joinable());
+        my_threads[i].join();
+    }
+    int req_size = nreq * nthread;
+    assert(int(measurements.size()) == req_size);
+    if(req_size != 0)
     {
         // from low to high
         std::sort(measurements.begin(), measurements.end());
-        int latency_95_index = int(double(nreq) * 0.95);
-        if(latency_95_index >= nreq)
-            latency_95_index = nreq - 1;
+        int latency_95_index = int(double(req_size) * 0.95);
+        if(latency_95_index >= req_size)
+            latency_95_index = req_size - 1;
         latency_95 = measurements[latency_95_index];
         double sum = 0;
-        for(int i = 0; i < nreq; i ++)
+        for(int i = 0; i < req_size; i ++)
             sum += measurements[i];
         assert(sum != 0);
         // convert request per millisecond to request per second
-        mean_throughput = double(nreq) / sum * 1000.0;
+        mean_throughput = double(req_size) / sum * 1000000.0;
         return std::make_pair (latency_95, mean_throughput);
     }
     return std::make_pair (0.0, 0.0);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    /*
-    auto my_vector = baseline_latencies(100000, 10, 10000);
-    std::sort(my_vector.begin(), my_vector.end());
-    int j = 0;
-    for(unsigned int i = 0; i < my_vector.size(); i ++)
-    {
-        if(my_vector[i] != my_vector[j])
-        {
-            std::cout << my_vector[j] / double(my_vector.size())  << " " << i << std::endl;
-            j = i;
-        }
-        if(i == my_vector.size() - 1)
-        {
-            std::cout << my_vector[i] / double(my_vector.size())  << " " << i + 1 << std::endl;
-        }
-    }
-    */
-    auto result = baseline_performance(100000, 10, 100000);
+    assert(argc == 5);
+    auto result = threaded_performance(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
     std::cout << result.first << " " << result.second << std::endl;
     
     return 0;
