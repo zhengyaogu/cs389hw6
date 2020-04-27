@@ -21,3 +21,5 @@ We tried to use gdb to debug, but it returns a page of `"warning: unable to open
 
 ### Measurements and hypothesis
 As we mentioned above, we basically cannot make any reliable measurements, but we are still able to collect a minimal amount of data using the hw5 version of client. 
+ - We found that when a multi-thread client is running with a single-thread server, its latency will decrease as `nthread` goes up until the latency hits a threshold. After the threshold, the latency won't decrease anymore and would even goes up a little bit. This is because the server reaches its limit and the client needs to spend all its time to wait for the server to respond.
+ - Hypothesis: similarly, we guess that we the theads of server increases, the threshold would also increase.
