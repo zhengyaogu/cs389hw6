@@ -22,4 +22,7 @@ We tried to use gdb to debug, but it returns a page of `"warning: unable to open
 ### Measurements and hypothesis
 As we mentioned above, we basically cannot make any reliable measurements, but we are still able to collect a minimal amount of data using the hw5 version of client. 
  - We found that when a multi-thread client is running with a single-thread server, its latency will decrease as `nthread` goes up until the latency hits a threshold. After the threshold, the latency won't decrease anymore and would even goes up a little bit. This is because the server reaches its limit and the client needs to spend all its time to wait for the server to respond.
- - Hypothesis: similarly, we guess that we the theads of server increases, the threshold would also increase.
+ - Hypothesis: similarly, we guess that we the theads of server increases, the threshold would also increase, because the number of  requests that the server can process in a unit of time would also increase.
+ 
+ Hence, if we fix the number of threads of the server, the overall performance should be:
+##### As the number of the client threads increase, the 95th-latency would decrease at first, and then it would stop at a certain limit. As the threads of the client continue increasing, the latency might stay at the same point or it might increase a little bit.
