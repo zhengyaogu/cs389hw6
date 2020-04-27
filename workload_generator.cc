@@ -104,7 +104,7 @@ class WorkloadGenerator::Impl
 	
         for (unsigned int i = 0; i < temp_weights.size(); i++)
         {
-            temp_weights.at(i) = pow(2, temp_weights.size() - 1 - i);
+            temp_weights.at(i) = pow(10, temp_weights.size() - 1 - i);
         }
 
         dd = std::discrete_distribution(temp_weights.begin(), temp_weights.end());

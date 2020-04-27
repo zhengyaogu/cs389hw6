@@ -438,6 +438,7 @@ public:
     void
     do_close()
     {
+        
         // Send a TCP shutdown
         beast::error_code ec;
         stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
@@ -820,6 +821,7 @@ main(int argc, char* argv[])
         delete cache;
 
         return EXIT_SUCCESS;
+        
     }
     catch(std::exception const& e)
     {
@@ -830,4 +832,5 @@ main(int argc, char* argv[])
 
         return EXIT_FAILURE;
     }
+    
 }

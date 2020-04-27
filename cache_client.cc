@@ -29,11 +29,12 @@ class Cache::Impl
     
     net::io_context ioc;
     tcp::resolver resolver;
-    beast::tcp_stream stream;
+    mutable beast::tcp_stream stream;
     
     public:
     Impl(std::string h, std::string p)
     :
+        ioc(),
         resolver(net::make_strand(ioc)),
         stream(ioc)
     {
@@ -49,15 +50,18 @@ class Cache::Impl
 
     ~Impl()
     {
+        std::cout << "here!" << std::endl;
         // Gracefully close the socket
+        
         beast::error_code ec;
         stream.socket().shutdown(tcp::socket::shutdown_both, ec);
-        
     }
-
+    // Disallow Impl copies, to simplify memory management.
+    Impl(const Impl&) = delete;
+    Impl& operator=(const Impl&) = delete;
+    
     http::response<http::dynamic_body> make_request(http::verb verb, std::string target) const
     {    
-
         // Declare a container to hold the response
         http::response<http::dynamic_body> res;
 
@@ -154,16 +158,13 @@ Cache::Cache(size_type maxmem,
     assert(false);
 }
 
-Cache::Cache(std::string host, std::string port)
+Cache::Cache(std::string host, std::string port):
+    pImpl_(new Impl(host, port))
 {
-//    net::io_context ioc;
-    pImpl_ = std::unique_ptr<Impl>(new Impl(host, port));
 }
 
 Cache::~Cache()
 {
-    // delete this unique ptr
-    pImpl_.reset();
 }
 
 
